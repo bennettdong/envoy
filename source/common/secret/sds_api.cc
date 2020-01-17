@@ -19,7 +19,7 @@ namespace Secret {
 SdsApi::SdsApi(envoy::config::core::v3alpha::ConfigSource sds_config,
                absl::string_view sds_config_name, Config::SubscriptionFactory& subscription_factory,
                TimeSource& time_source, ProtobufMessage::ValidationVisitor& validation_visitor,
-               Stats::Store& stats, Init::Manager& init_manager,
+               Stats::Scope& stats, Init::Manager& init_manager,
                std::function<void()> destructor_cb)
     : init_target_(fmt::format("SdsApi {}", sds_config_name), [this] { initialize(); }),
       stats_(stats), sds_config_(std::move(sds_config)), sds_config_name_(sds_config_name),

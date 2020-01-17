@@ -55,6 +55,17 @@ void SecretManagerImpl::addStaticSecret(
     }
     break;
   }
+  case envoy::extensions::transport_sockets::tls::v3alpha::Secret::TypeCase::kGenericSecret: {
+    auto secret_provider =
+        std::make_shared<GenericSecretConfigProviderImpl>(secret.generic_secret());
+    if (!static_generic_secret_providers_
+            .insert(std::make_pair(secret.name(), secret_provider))
+            .second) {
+      throw EnvoyException(
+          absl::StrCat("Duplicate static GenericSecret secret name ", secret.name()));
+    }
+    break;
+  }
   default:
     throw EnvoyException("Secret type not implemented");
   }
@@ -79,6 +90,12 @@ SecretManagerImpl::findStaticTlsSessionTicketKeysContextProvider(const std::stri
   return (secret != static_session_ticket_keys_providers_.end()) ? secret->second : nullptr;
 }
 
+GenericSecretConfigProviderSharedPtr
+SecretManagerImpl::findStaticGenericSecretProvider(const std::string& name) const {
+  auto secret = static_generic_secret_providers_.find(name);
+  return (secret != static_generic_secret_providers_.end()) ? secret->second : nullptr;
+}
+
 TlsCertificateConfigProviderSharedPtr SecretManagerImpl::createInlineTlsCertificateProvider(
     const envoy::extensions::transport_sockets::tls::v3alpha::TlsCertificate& tls_certificate) {
   return std::make_shared<TlsCertificateConfigProviderImpl>(tls_certificate);
@@ -99,12 +116,23 @@ SecretManagerImpl::createInlineTlsSessionTicketKeysProvider(
   return std::make_shared<TlsSessionTicketKeysConfigProviderImpl>(tls_session_ticket_keys);
 }
 
+GenericSecretConfigProviderSharedPtr SecretManagerImpl::createInlineGenericSecretProvider(
+    const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret& generic_secret) {
+  return std::make_shared<GenericSecretConfigProviderImpl>(generic_secret);
+}
+
 TlsCertificateConfigProviderSharedPtr SecretManagerImpl::findOrCreateTlsCertificateProvider(
     const envoy::config::core::v3alpha::ConfigSource& sds_config_source,
     const std::string& config_name,
     Server::Configuration::TransportSocketFactoryContext& secret_provider_context) {
-  return certificate_providers_.findOrCreate(sds_config_source, config_name,
-                                             secret_provider_context);
+  ASSERT(secret_provider_context.initManager() != nullptr);
+  return certificate_providers_
+      .findOrCreate(sds_config_source, config_name, 
+                    secret_provider_context.clusterManager().subscriptionFactory(),
+                    secret_provider_context.dispatcher().timeSource(),
+                    secret_provider_context.messageValidationVisitor(),
+                    secret_provider_context.stats(), *secret_provider_context.initManager(),
+                    secret_provider_context.localInfo());
 }
 
 CertificateValidationContextConfigProviderSharedPtr
@@ -112,8 +140,14 @@ SecretManagerImpl::findOrCreateCertificateValidationContextProvider(
     const envoy::config::core::v3alpha::ConfigSource& sds_config_source,
     const std::string& config_name,
     Server::Configuration::TransportSocketFactoryContext& secret_provider_context) {
-  return validation_context_providers_.findOrCreate(sds_config_source, config_name,
-                                                    secret_provider_context);
+  ASSERT(secret_provider_context.initManager() != nullptr);
+  return validation_context_providers_
+      .findOrCreate(sds_config_source, config_name, 
+                    secret_provider_context.clusterManager().subscriptionFactory(),
+                    secret_provider_context.dispatcher().timeSource(),
+                    secret_provider_context.messageValidationVisitor(),
+                    secret_provider_context.stats(), *secret_provider_context.initManager(),
+                    secret_provider_context.localInfo());
 }
 
 TlsSessionTicketKeysConfigProviderSharedPtr
@@ -121,8 +155,26 @@ SecretManagerImpl::findOrCreateTlsSessionTicketKeysContextProvider(
     const envoy::config::core::v3alpha::ConfigSource& sds_config_source,
     const std::string& config_name,
     Server::Configuration::TransportSocketFactoryContext& secret_provider_context) {
-  return session_ticket_keys_providers_.findOrCreate(sds_config_source, config_name,
-                                                     secret_provider_context);
+  ASSERT(secret_provider_context.initManager() != nullptr);
+  return session_ticket_keys_providers_
+      .findOrCreate(sds_config_source, config_name, 
+                    secret_provider_context.clusterManager().subscriptionFactory(),
+                    secret_provider_context.dispatcher().timeSource(),
+                    secret_provider_context.messageValidationVisitor(),
+                    secret_provider_context.stats(), *secret_provider_context.initManager(),
+                    secret_provider_context.localInfo());
+}
+
+GenericSecretConfigProviderSharedPtr SecretManagerImpl::findOrCreateGenericSecretProvider(
+    const envoy::config::core::v3alpha::ConfigSource& sds_config_source,
+    const std::string& config_name, Server::Configuration::FactoryContext& secret_provider_context) {
+  return generic_secret_providers_
+      .findOrCreate(sds_config_source, config_name, 
+                    secret_provider_context.clusterManager().subscriptionFactory(),
+                    secret_provider_context.dispatcher().timeSource(),
+                    secret_provider_context.messageValidationVisitor(),
+                    secret_provider_context.scope(), secret_provider_context.initManager(),
+                    secret_provider_context.localInfo());
 }
 
 // We clear private key, password, and session ticket encryption keys to avoid information leaking.
@@ -151,6 +203,14 @@ void redactSecret(envoy::extensions::transport_sockets::tls::v3alpha::Secret* se
           envoy::config::core::v3alpha::DataSource::SpecifierCase::kFilename) {
         data_source.set_inline_string("[redacted]");
       }
+    }
+  }
+  if (secret && secret->type_case() == 
+          envoy::extensions::transport_sockets::tls::v3alpha::Secret::TypeCase::kGenericSecret) {
+    auto& data_source = *secret->mutable_generic_secret()->mutable_secret();
+    if (data_source.specifier_case() !=
+        envoy::config::core::v3alpha::DataSource::SpecifierCase::kFilename) {
+      data_source.set_inline_string("[redacted]");
     }
   }
 }
@@ -198,6 +258,19 @@ ProtobufTypes::MessagePtr SecretManagerImpl::dumpSecretConfigs() {
     for (const auto& key : session_ticket_keys->secret()->keys()) {
       dump_secret.mutable_session_ticket_keys()->add_keys()->MergeFrom(key);
     }
+    redactSecret(&dump_secret);
+    static_secret->mutable_secret()->PackFrom(dump_secret);
+  }
+
+  // Handle static generic secret providers.
+  for (const auto& secret_iter : static_generic_secret_providers_) {
+    const auto& generic_secret = secret_iter.second;
+    auto static_secret = config_dump->mutable_static_secrets()->Add();
+    static_secret->set_name(secret_iter.first);
+    ASSERT(generic_secret != nullptr);
+    envoy::extensions::transport_sockets::tls::v3alpha::Secret dump_secret;
+    dump_secret.set_name(secret_iter.first);
+    dump_secret.mutable_generic_secret()->MergeFrom(*generic_secret->secret());
     redactSecret(&dump_secret);
     static_secret->mutable_secret()->PackFrom(dump_secret);
   }
@@ -279,6 +352,33 @@ ProtobufTypes::MessagePtr SecretManagerImpl::dumpSecretConfigs() {
     redactSecret(&secret);
     dump_secret->mutable_secret()->PackFrom(secret);
   }
+
+  // Handle dynamic generic secret providers.
+  const auto generic_secret_providers = generic_secret_providers_.allSecretProviders();
+  for (const auto& provider : generic_secret_providers) {
+    const auto& secret_data = provider->secretData();
+    const auto& generic_secret = provider->secret();
+    envoy::admin::v3alpha::SecretsConfigDump::DynamicSecret* dump_secret;
+    const bool secret_ready = generic_secret != nullptr;
+    if (secret_ready) {
+      dump_secret = config_dump->mutable_dynamic_active_secrets()->Add();
+    } else {
+      dump_secret = config_dump->mutable_dynamic_warming_secrets()->Add();
+    }
+    dump_secret->set_name(secret_data.resource_name_);
+    envoy::extensions::transport_sockets::tls::v3alpha::Secret secret;
+    secret.set_name(secret_data.resource_name_);
+    ProtobufWkt::Timestamp last_updated_ts;
+    TimestampUtil::systemClockToTimestamp(secret_data.last_updated_, last_updated_ts);
+    dump_secret->set_version_info(secret_data.version_info_);
+    *dump_secret->mutable_last_updated() = last_updated_ts;
+    if (secret_ready) {
+      secret.mutable_generic_secret()->MergeFrom(*generic_secret);
+    }
+    redactSecret(&secret);
+    dump_secret->mutable_secret()->PackFrom(secret);
+  }
+
   return config_dump;
 }
 

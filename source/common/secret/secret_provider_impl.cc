@@ -31,5 +31,11 @@ TlsSessionTicketKeysConfigProviderImpl::TlsSessionTicketKeysConfigProviderImpl(
               envoy::extensions::transport_sockets::tls::v3alpha::TlsSessionTicketKeys>(
               tls_session_ticket_keys)) {}
 
+GenericSecretConfigProviderImpl::GenericSecretConfigProviderImpl(
+    const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret& generic_secret)
+    : generic_secret_(
+          std::make_unique<envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret>(
+              generic_secret)) {}
+
 } // namespace Secret
 } // namespace Envoy
