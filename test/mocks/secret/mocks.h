@@ -4,6 +4,7 @@
 #include "envoy/extensions/transport_sockets/tls/v3alpha/cert.pb.h"
 #include "envoy/secret/secret_callbacks.h"
 #include "envoy/secret/secret_manager.h"
+#include "envoy/server/filter_config.h"
 #include "envoy/server/transport_socket_config.h"
 #include "envoy/ssl/tls_certificate_config.h"
 
@@ -26,6 +27,8 @@ public:
                      CertificateValidationContextConfigProviderSharedPtr(const std::string& name));
   MOCK_CONST_METHOD1(findStaticTlsSessionTicketKeysContextProvider,
                      TlsSessionTicketKeysConfigProviderSharedPtr(const std::string& name));
+  MOCK_CONST_METHOD1(findStaticGenericSecretProvider,
+                     GenericSecretConfigProviderSharedPtr(const std::string& name));
   MOCK_METHOD1(createInlineTlsCertificateProvider,
                TlsCertificateConfigProviderSharedPtr(
                    const envoy::extensions::transport_sockets::tls::v3alpha::TlsCertificate&
@@ -39,6 +42,10 @@ public:
                TlsSessionTicketKeysConfigProviderSharedPtr(
                    const envoy::extensions::transport_sockets::tls::v3alpha::TlsSessionTicketKeys&
                        tls_session_ticket_keys));
+  MOCK_METHOD1(createInlineGenericSecretProvider,
+               GenericSecretConfigProviderSharedPtr(
+                   const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret&
+                       generic_secret));
   MOCK_METHOD3(findOrCreateTlsCertificateProvider,
                TlsCertificateConfigProviderSharedPtr(
                    const envoy::config::core::v3alpha::ConfigSource&, const std::string&,
@@ -52,6 +59,10 @@ public:
                TlsSessionTicketKeysConfigProviderSharedPtr(
                    const envoy::config::core::v3alpha::ConfigSource&, const std::string&,
                    Server::Configuration::TransportSocketFactoryContext&));
+  MOCK_METHOD3(findOrCreateGenericSecretProvider,
+               GenericSecretConfigProviderSharedPtr(
+                   const envoy::config::core::v3alpha::ConfigSource&, const std::string&,
+                   Server::Configuration::FactoryContext&));
 };
 
 class MockSecretCallbacks : public SecretCallbacks {
