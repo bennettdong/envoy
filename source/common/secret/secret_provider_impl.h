@@ -91,8 +91,8 @@ public:
   }
 
   Common::CallbackHandle* addValidationCallback(
-      std::function<void(
-          const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret&)>) override {
+      std::function<void(const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret&)>)
+      override {
     return nullptr;
   }
 

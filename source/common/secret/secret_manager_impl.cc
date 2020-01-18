@@ -58,9 +58,8 @@ void SecretManagerImpl::addStaticSecret(
   case envoy::extensions::transport_sockets::tls::v3alpha::Secret::TypeCase::kGenericSecret: {
     auto secret_provider =
         std::make_shared<GenericSecretConfigProviderImpl>(secret.generic_secret());
-    if (!static_generic_secret_providers_
-            .insert(std::make_pair(secret.name(), secret_provider))
-            .second) {
+    if (!static_generic_secret_providers_.insert(std::make_pair(secret.name(), secret_provider))
+             .second) {
       throw EnvoyException(
           absl::StrCat("Duplicate static GenericSecret secret name ", secret.name()));
     }
@@ -126,13 +125,12 @@ TlsCertificateConfigProviderSharedPtr SecretManagerImpl::findOrCreateTlsCertific
     const std::string& config_name,
     Server::Configuration::TransportSocketFactoryContext& secret_provider_context) {
   ASSERT(secret_provider_context.initManager() != nullptr);
-  return certificate_providers_
-      .findOrCreate(sds_config_source, config_name, 
-                    secret_provider_context.clusterManager().subscriptionFactory(),
-                    secret_provider_context.dispatcher().timeSource(),
-                    secret_provider_context.messageValidationVisitor(),
-                    secret_provider_context.stats(), *secret_provider_context.initManager(),
-                    secret_provider_context.localInfo());
+  return certificate_providers_.findOrCreate(
+      sds_config_source, config_name,
+      secret_provider_context.clusterManager().subscriptionFactory(),
+      secret_provider_context.dispatcher().timeSource(),
+      secret_provider_context.messageValidationVisitor(), secret_provider_context.stats(),
+      *secret_provider_context.initManager(), secret_provider_context.localInfo());
 }
 
 CertificateValidationContextConfigProviderSharedPtr
@@ -141,13 +139,12 @@ SecretManagerImpl::findOrCreateCertificateValidationContextProvider(
     const std::string& config_name,
     Server::Configuration::TransportSocketFactoryContext& secret_provider_context) {
   ASSERT(secret_provider_context.initManager() != nullptr);
-  return validation_context_providers_
-      .findOrCreate(sds_config_source, config_name, 
-                    secret_provider_context.clusterManager().subscriptionFactory(),
-                    secret_provider_context.dispatcher().timeSource(),
-                    secret_provider_context.messageValidationVisitor(),
-                    secret_provider_context.stats(), *secret_provider_context.initManager(),
-                    secret_provider_context.localInfo());
+  return validation_context_providers_.findOrCreate(
+      sds_config_source, config_name,
+      secret_provider_context.clusterManager().subscriptionFactory(),
+      secret_provider_context.dispatcher().timeSource(),
+      secret_provider_context.messageValidationVisitor(), secret_provider_context.stats(),
+      *secret_provider_context.initManager(), secret_provider_context.localInfo());
 }
 
 TlsSessionTicketKeysConfigProviderSharedPtr
@@ -156,25 +153,24 @@ SecretManagerImpl::findOrCreateTlsSessionTicketKeysContextProvider(
     const std::string& config_name,
     Server::Configuration::TransportSocketFactoryContext& secret_provider_context) {
   ASSERT(secret_provider_context.initManager() != nullptr);
-  return session_ticket_keys_providers_
-      .findOrCreate(sds_config_source, config_name, 
-                    secret_provider_context.clusterManager().subscriptionFactory(),
-                    secret_provider_context.dispatcher().timeSource(),
-                    secret_provider_context.messageValidationVisitor(),
-                    secret_provider_context.stats(), *secret_provider_context.initManager(),
-                    secret_provider_context.localInfo());
+  return session_ticket_keys_providers_.findOrCreate(
+      sds_config_source, config_name,
+      secret_provider_context.clusterManager().subscriptionFactory(),
+      secret_provider_context.dispatcher().timeSource(),
+      secret_provider_context.messageValidationVisitor(), secret_provider_context.stats(),
+      *secret_provider_context.initManager(), secret_provider_context.localInfo());
 }
 
 GenericSecretConfigProviderSharedPtr SecretManagerImpl::findOrCreateGenericSecretProvider(
     const envoy::config::core::v3alpha::ConfigSource& sds_config_source,
-    const std::string& config_name, Server::Configuration::FactoryContext& secret_provider_context) {
-  return generic_secret_providers_
-      .findOrCreate(sds_config_source, config_name, 
-                    secret_provider_context.clusterManager().subscriptionFactory(),
-                    secret_provider_context.dispatcher().timeSource(),
-                    secret_provider_context.messageValidationVisitor(),
-                    secret_provider_context.scope(), secret_provider_context.initManager(),
-                    secret_provider_context.localInfo());
+    const std::string& config_name,
+    Server::Configuration::FactoryContext& secret_provider_context) {
+  return generic_secret_providers_.findOrCreate(
+      sds_config_source, config_name,
+      secret_provider_context.clusterManager().subscriptionFactory(),
+      secret_provider_context.dispatcher().timeSource(),
+      secret_provider_context.messageValidationVisitor(), secret_provider_context.scope(),
+      secret_provider_context.initManager(), secret_provider_context.localInfo());
 }
 
 // We clear private key, password, and session ticket encryption keys to avoid information leaking.
@@ -205,7 +201,8 @@ void redactSecret(envoy::extensions::transport_sockets::tls::v3alpha::Secret* se
       }
     }
   }
-  if (secret && secret->type_case() == 
+  if (secret &&
+      secret->type_case() ==
           envoy::extensions::transport_sockets::tls::v3alpha::Secret::TypeCase::kGenericSecret) {
     auto& data_source = *secret->mutable_generic_secret()->mutable_secret();
     if (data_source.specifier_case() !=

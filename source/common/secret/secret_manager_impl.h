@@ -84,7 +84,7 @@ private:
     findOrCreate(const envoy::config::core::v3alpha::ConfigSource& sds_config_source,
                  const std::string& config_name, Config::SubscriptionFactory& subscription_factory,
                  TimeSource& time_source, ProtobufMessage::ValidationVisitor& validation_visitor,
-                 Stats::Scope& stats, Init::Manager& init_manager, 
+                 Stats::Scope& stats, Init::Manager& init_manager,
                  const LocalInfo::LocalInfo& local_info) {
       const std::string map_key =
           absl::StrCat(MessageUtil::hash(sds_config_source), ".", config_name);

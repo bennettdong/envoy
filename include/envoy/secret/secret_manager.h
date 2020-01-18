@@ -95,8 +95,7 @@ public:
    * @return a GenericSecretConfigProviderSharedPtr created from tls_certificate.
    */
   virtual GenericSecretConfigProviderSharedPtr createInlineGenericSecretProvider(
-      const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret& generic_secret)
-      PURE;
+      const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret& generic_secret) PURE;
 
   /**
    * Finds and returns a dynamic secret provider associated to SDS config. Create

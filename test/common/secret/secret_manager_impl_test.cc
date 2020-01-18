@@ -221,9 +221,8 @@ generic_secret:
   ASSERT_EQ(secret_manager->findStaticGenericSecretProvider("undefined"), nullptr);
   ASSERT_NE(secret_manager->findStaticGenericSecretProvider("encryption_key"), nullptr);
 
-  const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret
-      generic_secret(
-          *secret_manager->findStaticGenericSecretProvider("encryption_key")->secret());
+  const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret generic_secret(
+      *secret_manager->findStaticGenericSecretProvider("encryption_key")->secret());
   const std::string secret_path =
       "{{ test_rundir }}/test/extensions/transport_sockets/tls/test_data/aes_128_key";
   EXPECT_EQ(generic_secret.secret().filename(), TestEnvironment::substitute(secret_path));
@@ -424,8 +423,8 @@ generic_secret:
   Protobuf::RepeatedPtrField<ProtobufWkt::Any> secret_resources;
   secret_resources.Add()->PackFrom(typed_secret);
   init_target_handle->initialize(init_watcher);
-  factory_context.cluster_manager_.subscription_factory_.callbacks_
-      ->onConfigUpdate(secret_resources, "");
+  factory_context.cluster_manager_.subscription_factory_.callbacks_->onConfigUpdate(
+      secret_resources, "");
 
   const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret generic_secret(
       *secret_provider->secret());
@@ -636,8 +635,8 @@ generic_secret:
   secret_resources.Clear();
   secret_resources.Add()->PackFrom(typed_secret);
   init_target_handle->initialize(init_watcher);
-  factory_context.cluster_manager_.subscription_factory_.callbacks_
-      ->onConfigUpdate(secret_resources, "signing-key-v1");
+  factory_context.cluster_manager_.subscription_factory_.callbacks_->onConfigUpdate(
+      secret_resources, "signing-key-v1");
 
   const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret generic_secret(
       *generic_secret_provider->secret());

@@ -42,10 +42,10 @@ public:
                TlsSessionTicketKeysConfigProviderSharedPtr(
                    const envoy::extensions::transport_sockets::tls::v3alpha::TlsSessionTicketKeys&
                        tls_session_ticket_keys));
-  MOCK_METHOD1(createInlineGenericSecretProvider,
-               GenericSecretConfigProviderSharedPtr(
-                   const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret&
-                       generic_secret));
+  MOCK_METHOD1(
+      createInlineGenericSecretProvider,
+      GenericSecretConfigProviderSharedPtr(
+          const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret& generic_secret));
   MOCK_METHOD3(findOrCreateTlsCertificateProvider,
                TlsCertificateConfigProviderSharedPtr(
                    const envoy::config::core::v3alpha::ConfigSource&, const std::string&,

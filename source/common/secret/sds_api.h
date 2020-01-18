@@ -101,16 +101,17 @@ using GenericSecretSdsApiSharedPtr = std::shared_ptr<GenericSecretSdsApi>;
 class TlsCertificateSdsApi : public SdsApi, public TlsCertificateConfigProvider {
 public:
   static TlsCertificateSdsApiSharedPtr
-  create(const envoy::config::core::v3alpha::ConfigSource& sds_config, 
-         const std::string& sds_config_name, Config::SubscriptionFactory& subscription_factory, 
-         TimeSource& time_source, ProtobufMessage::ValidationVisitor& validation_visitor, 
+  create(const envoy::config::core::v3alpha::ConfigSource& sds_config,
+         const std::string& sds_config_name, Config::SubscriptionFactory& subscription_factory,
+         TimeSource& time_source, ProtobufMessage::ValidationVisitor& validation_visitor,
          Stats::Scope& stats, Init::Manager& init_manager, const LocalInfo::LocalInfo& local_info,
          std::function<void()> destructor_cb) {
     // We need to do this early as we invoke the subscription factory during initialization, which
     // is too late to throw.
     Config::Utility::checkLocalInfo("TlsCertificateSdsApi", local_info);
-    return std::make_shared<TlsCertificateSdsApi>(sds_config, sds_config_name, subscription_factory, 
-        time_source, validation_visitor, stats, init_manager, destructor_cb);
+    return std::make_shared<TlsCertificateSdsApi>(sds_config, sds_config_name, subscription_factory,
+                                                  time_source, validation_visitor, stats,
+                                                  init_manager, destructor_cb);
   }
 
   TlsCertificateSdsApi(const envoy::config::core::v3alpha::ConfigSource& sds_config,
@@ -156,16 +157,17 @@ class CertificateValidationContextSdsApi : public SdsApi,
                                            public CertificateValidationContextConfigProvider {
 public:
   static CertificateValidationContextSdsApiSharedPtr
-  create(const envoy::config::core::v3alpha::ConfigSource& sds_config, 
-         const std::string& sds_config_name, Config::SubscriptionFactory& subscription_factory, 
-         TimeSource& time_source, ProtobufMessage::ValidationVisitor& validation_visitor, 
+  create(const envoy::config::core::v3alpha::ConfigSource& sds_config,
+         const std::string& sds_config_name, Config::SubscriptionFactory& subscription_factory,
+         TimeSource& time_source, ProtobufMessage::ValidationVisitor& validation_visitor,
          Stats::Scope& stats, Init::Manager& init_manager, const LocalInfo::LocalInfo& local_info,
          std::function<void()> destructor_cb) {
     // We need to do this early as we invoke the subscription factory during initialization, which
     // is too late to throw.
     Config::Utility::checkLocalInfo("CertificateValidationContextSdsApi", local_info);
-    return std::make_shared<CertificateValidationContextSdsApi>(sds_config, sds_config_name, 
-        subscription_factory, time_source, validation_visitor, stats, init_manager, destructor_cb);
+    return std::make_shared<CertificateValidationContextSdsApi>(
+        sds_config, sds_config_name, subscription_factory, time_source, validation_visitor, stats,
+        init_manager, destructor_cb);
   }
   CertificateValidationContextSdsApi(const envoy::config::core::v3alpha::ConfigSource& sds_config,
                                      const std::string& sds_config_name,
@@ -220,16 +222,17 @@ private:
 class TlsSessionTicketKeysSdsApi : public SdsApi, public TlsSessionTicketKeysConfigProvider {
 public:
   static TlsSessionTicketKeysSdsApiSharedPtr
-  create(const envoy::config::core::v3alpha::ConfigSource& sds_config, 
-         const std::string& sds_config_name, Config::SubscriptionFactory& subscription_factory, 
-         TimeSource& time_source, ProtobufMessage::ValidationVisitor& validation_visitor, 
+  create(const envoy::config::core::v3alpha::ConfigSource& sds_config,
+         const std::string& sds_config_name, Config::SubscriptionFactory& subscription_factory,
+         TimeSource& time_source, ProtobufMessage::ValidationVisitor& validation_visitor,
          Stats::Scope& stats, Init::Manager& init_manager, const LocalInfo::LocalInfo& local_info,
          std::function<void()> destructor_cb) {
     // We need to do this early as we invoke the subscription factory during initialization, which
     // is too late to throw.
     Config::Utility::checkLocalInfo("TlsSessionTicketKeysSdsApi", local_info);
-    return std::make_shared<TlsSessionTicketKeysSdsApi>(sds_config, sds_config_name, 
-        subscription_factory, time_source, validation_visitor, stats, init_manager, destructor_cb);
+    return std::make_shared<TlsSessionTicketKeysSdsApi>(
+        sds_config, sds_config_name, subscription_factory, time_source, validation_visitor, stats,
+        init_manager, destructor_cb);
   }
 
   TlsSessionTicketKeysSdsApi(const envoy::config::core::v3alpha::ConfigSource& sds_config,
@@ -285,16 +288,17 @@ private:
 class GenericSecretSdsApi : public SdsApi, public GenericSecretConfigProvider {
 public:
   static GenericSecretSdsApiSharedPtr
-  create(const envoy::config::core::v3alpha::ConfigSource& sds_config, 
-         const std::string& sds_config_name, Config::SubscriptionFactory& subscription_factory, 
-         TimeSource& time_source, ProtobufMessage::ValidationVisitor& validation_visitor, 
+  create(const envoy::config::core::v3alpha::ConfigSource& sds_config,
+         const std::string& sds_config_name, Config::SubscriptionFactory& subscription_factory,
+         TimeSource& time_source, ProtobufMessage::ValidationVisitor& validation_visitor,
          Stats::Scope& stats, Init::Manager& init_manager, const LocalInfo::LocalInfo& local_info,
          std::function<void()> destructor_cb) {
     // We need to do this early as we invoke the subscription factory during initialization, which
     // is too late to throw.
     Config::Utility::checkLocalInfo("GenericSecretSdsApi", local_info);
-    return std::make_shared<GenericSecretSdsApi>(sds_config, sds_config_name, subscription_factory, 
-        time_source, validation_visitor, stats, init_manager, destructor_cb);
+    return std::make_shared<GenericSecretSdsApi>(sds_config, sds_config_name, subscription_factory,
+                                                 time_source, validation_visitor, stats,
+                                                 init_manager, destructor_cb);
   }
 
   GenericSecretSdsApi(const envoy::config::core::v3alpha::ConfigSource& sds_config,
@@ -310,8 +314,8 @@ public:
     return generic_secret.get();
   }
   Common::CallbackHandle* addValidationCallback(
-      std::function<void(
-          const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret&)>) override {
+      std::function<void(const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret&)>)
+      override {
     return nullptr;
   }
   Common::CallbackHandle* addUpdateCallback(std::function<void()> callback) override {
@@ -319,8 +323,10 @@ public:
   }
 
 protected:
-  void setSecret(const envoy::extensions::transport_sockets::tls::v3alpha::Secret& secret) override {
-    generic_secret = std::make_unique<envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret>(
+  void
+  setSecret(const envoy::extensions::transport_sockets::tls::v3alpha::Secret& secret) override {
+    generic_secret =
+        std::make_unique<envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret>(
             secret.generic_secret());
   }
   void validateConfig(const envoy::extensions::transport_sockets::tls::v3alpha::Secret&) override {}
