@@ -3,17 +3,18 @@
 #include <functional>
 
 #include "envoy/api/api.h"
-#include "envoy/config/core/v3alpha/config_source.pb.h"
+#include "envoy/config/core/v3/config_source.pb.h"
 #include "envoy/config/subscription.h"
 #include "envoy/config/subscription_factory.h"
 #include "envoy/event/dispatcher.h"
-#include "envoy/extensions/transport_sockets/tls/v3alpha/cert.pb.h"
+#include "envoy/extensions/transport_sockets/tls/v3/cert.pb.h"
 #include "envoy/init/manager.h"
 #include "envoy/local_info/local_info.h"
 #include "envoy/runtime/runtime.h"
 #include "envoy/secret/secret_callbacks.h"
 #include "envoy/secret/secret_provider.h"
-#include "envoy/service/discovery/v3alpha/discovery.pb.h"
+#include "envoy/server/transport_socket_config.h"
+#include "envoy/service/discovery/v3/discovery.pb.h"
 #include "envoy/stats/stats.h"
 #include "envoy/upstream/cluster_manager.h"
 
@@ -38,7 +39,7 @@ public:
     SystemTime last_updated_;
   };
 
-  SdsApi(envoy::config::core::v3alpha::ConfigSource sds_config, absl::string_view sds_config_name,
+  SdsApi(envoy::config::core::v3::ConfigSource sds_config, absl::string_view sds_config_name,
          Config::SubscriptionFactory& subscription_factory, TimeSource& time_source,
          ProtobufMessage::ValidationVisitor& validation_visitor, Stats::Scope& stats,
          Init::Manager& init_manager, std::function<void()> destructor_cb);
@@ -47,25 +48,22 @@ public:
 
 protected:
   // Creates new secrets.
-  virtual void setSecret(const envoy::extensions::transport_sockets::tls::v3alpha::Secret&) PURE;
-  virtual void
-  validateConfig(const envoy::extensions::transport_sockets::tls::v3alpha::Secret&) PURE;
+  virtual void setSecret(const envoy::extensions::transport_sockets::tls::v3::Secret&) PURE;
+  virtual void validateConfig(const envoy::extensions::transport_sockets::tls::v3::Secret&) PURE;
   Common::CallbackManager<> update_callback_manager_;
 
   // Config::SubscriptionCallbacks
   void onConfigUpdate(const Protobuf::RepeatedPtrField<ProtobufWkt::Any>& resources,
                       const std::string& version_info) override;
-  void
-  onConfigUpdate(const Protobuf::RepeatedPtrField<envoy::service::discovery::v3alpha::Resource>&,
-                 const Protobuf::RepeatedPtrField<std::string>&, const std::string&) override;
+  void onConfigUpdate(const Protobuf::RepeatedPtrField<envoy::service::discovery::v3::Resource>&,
+                      const Protobuf::RepeatedPtrField<std::string>&, const std::string&) override;
   void onConfigUpdateFailed(Envoy::Config::ConfigUpdateFailureReason reason,
                             const EnvoyException* e) override;
   std::string resourceName(const ProtobufWkt::Any& resource) override {
-    return MessageUtil::anyConvert<envoy::extensions::transport_sockets::tls::v3alpha::Secret>(
-               resource)
+    return MessageUtil::anyConvert<envoy::extensions::transport_sockets::tls::v3::Secret>(resource)
         .name();
   }
-  static std::string loadTypeUrl(envoy::config::core::v3alpha::ApiVersion resource_api_version);
+  static std::string loadTypeUrl(envoy::config::core::v3::ApiVersion resource_api_version);
 
 private:
   void validateUpdateSize(int num_resources);
@@ -73,7 +71,7 @@ private:
   Init::TargetImpl init_target_;
   Stats::Scope& stats_;
 
-  const envoy::config::core::v3alpha::ConfigSource sds_config_;
+  const envoy::config::core::v3::ConfigSource sds_config_;
   std::unique_ptr<Config::Subscription> subscription_;
   const std::string sds_config_name_;
 
@@ -101,7 +99,7 @@ using GenericSecretSdsApiSharedPtr = std::shared_ptr<GenericSecretSdsApi>;
 class TlsCertificateSdsApi : public SdsApi, public TlsCertificateConfigProvider {
 public:
   static TlsCertificateSdsApiSharedPtr
-  create(const envoy::config::core::v3alpha::ConfigSource& sds_config,
+  create(const envoy::config::core::v3::ConfigSource& sds_config,
          const std::string& sds_config_name, Config::SubscriptionFactory& subscription_factory,
          TimeSource& time_source, ProtobufMessage::ValidationVisitor& validation_visitor,
          Stats::Scope& stats, Init::Manager& init_manager, const LocalInfo::LocalInfo& local_info,
@@ -114,7 +112,7 @@ public:
                                                   init_manager, destructor_cb);
   }
 
-  TlsCertificateSdsApi(const envoy::config::core::v3alpha::ConfigSource& sds_config,
+  TlsCertificateSdsApi(const envoy::config::core::v3::ConfigSource& sds_config,
                        const std::string& sds_config_name,
                        Config::SubscriptionFactory& subscription_factory, TimeSource& time_source,
                        ProtobufMessage::ValidationVisitor& validation_visitor, Stats::Scope& stats,
@@ -123,13 +121,12 @@ public:
                stats, init_manager, std::move(destructor_cb)) {}
 
   // SecretProvider
-  const envoy::extensions::transport_sockets::tls::v3alpha::TlsCertificate*
-  secret() const override {
+  const envoy::extensions::transport_sockets::tls::v3::TlsCertificate* secret() const override {
     return tls_certificate_secrets_.get();
   }
   Common::CallbackHandle* addValidationCallback(
-      std::function<void(
-          const envoy::extensions::transport_sockets::tls::v3alpha::TlsCertificate&)>) override {
+      std::function<void(const envoy::extensions::transport_sockets::tls::v3::TlsCertificate&)>)
+      override {
     return nullptr;
   }
   Common::CallbackHandle* addUpdateCallback(std::function<void()> callback) override {
@@ -137,13 +134,12 @@ public:
   }
 
 protected:
-  void
-  setSecret(const envoy::extensions::transport_sockets::tls::v3alpha::Secret& secret) override {
+  void setSecret(const envoy::extensions::transport_sockets::tls::v3::Secret& secret) override {
     tls_certificate_secrets_ =
-        std::make_unique<envoy::extensions::transport_sockets::tls::v3alpha::TlsCertificate>(
+        std::make_unique<envoy::extensions::transport_sockets::tls::v3::TlsCertificate>(
             secret.tls_certificate());
   }
-  void validateConfig(const envoy::extensions::transport_sockets::tls::v3alpha::Secret&) override {}
+  void validateConfig(const envoy::extensions::transport_sockets::tls::v3::Secret&) override {}
 
 private:
   TlsCertificatePtr tls_certificate_secrets_;
@@ -157,7 +153,7 @@ class CertificateValidationContextSdsApi : public SdsApi,
                                            public CertificateValidationContextConfigProvider {
 public:
   static CertificateValidationContextSdsApiSharedPtr
-  create(const envoy::config::core::v3alpha::ConfigSource& sds_config,
+  create(const envoy::config::core::v3::ConfigSource& sds_config,
          const std::string& sds_config_name, Config::SubscriptionFactory& subscription_factory,
          TimeSource& time_source, ProtobufMessage::ValidationVisitor& validation_visitor,
          Stats::Scope& stats, Init::Manager& init_manager, const LocalInfo::LocalInfo& local_info,
@@ -169,7 +165,7 @@ public:
         sds_config, sds_config_name, subscription_factory, time_source, validation_visitor, stats,
         init_manager, destructor_cb);
   }
-  CertificateValidationContextSdsApi(const envoy::config::core::v3alpha::ConfigSource& sds_config,
+  CertificateValidationContextSdsApi(const envoy::config::core::v3::ConfigSource& sds_config,
                                      const std::string& sds_config_name,
                                      Config::SubscriptionFactory& subscription_factory,
                                      TimeSource& time_source,
@@ -180,7 +176,7 @@ public:
                stats, init_manager, std::move(destructor_cb)) {}
 
   // SecretProvider
-  const envoy::extensions::transport_sockets::tls::v3alpha::CertificateValidationContext*
+  const envoy::extensions::transport_sockets::tls::v3::CertificateValidationContext*
   secret() const override {
     return certificate_validation_context_secrets_.get();
   }
@@ -189,29 +185,28 @@ public:
   }
 
   Common::CallbackHandle* addValidationCallback(
-      std::function<void(
-          const envoy::extensions::transport_sockets::tls::v3alpha::CertificateValidationContext&)>
+      std::function<
+          void(const envoy::extensions::transport_sockets::tls::v3::CertificateValidationContext&)>
           callback) override {
     return validation_callback_manager_.add(callback);
   }
 
 protected:
-  void
-  setSecret(const envoy::extensions::transport_sockets::tls::v3alpha::Secret& secret) override {
+  void setSecret(const envoy::extensions::transport_sockets::tls::v3::Secret& secret) override {
     certificate_validation_context_secrets_ = std::make_unique<
-        envoy::extensions::transport_sockets::tls::v3alpha::CertificateValidationContext>(
+        envoy::extensions::transport_sockets::tls::v3::CertificateValidationContext>(
         secret.validation_context());
   }
 
-  void validateConfig(
-      const envoy::extensions::transport_sockets::tls::v3alpha::Secret& secret) override {
+  void
+  validateConfig(const envoy::extensions::transport_sockets::tls::v3::Secret& secret) override {
     validation_callback_manager_.runCallbacks(secret.validation_context());
   }
 
 private:
   CertificateValidationContextPtr certificate_validation_context_secrets_;
   Common::CallbackManager<
-      const envoy::extensions::transport_sockets::tls::v3alpha::CertificateValidationContext&>
+      const envoy::extensions::transport_sockets::tls::v3::CertificateValidationContext&>
       validation_callback_manager_;
 };
 
@@ -222,7 +217,7 @@ private:
 class TlsSessionTicketKeysSdsApi : public SdsApi, public TlsSessionTicketKeysConfigProvider {
 public:
   static TlsSessionTicketKeysSdsApiSharedPtr
-  create(const envoy::config::core::v3alpha::ConfigSource& sds_config,
+  create(const envoy::config::core::v3::ConfigSource& sds_config,
          const std::string& sds_config_name, Config::SubscriptionFactory& subscription_factory,
          TimeSource& time_source, ProtobufMessage::ValidationVisitor& validation_visitor,
          Stats::Scope& stats, Init::Manager& init_manager, const LocalInfo::LocalInfo& local_info,
@@ -235,7 +230,7 @@ public:
         init_manager, destructor_cb);
   }
 
-  TlsSessionTicketKeysSdsApi(const envoy::config::core::v3alpha::ConfigSource& sds_config,
+  TlsSessionTicketKeysSdsApi(const envoy::config::core::v3::ConfigSource& sds_config,
                              const std::string& sds_config_name,
                              Config::SubscriptionFactory& subscription_factory,
                              TimeSource& time_source,
@@ -246,7 +241,7 @@ public:
                stats, init_manager, std::move(destructor_cb)) {}
 
   // SecretProvider
-  const envoy::extensions::transport_sockets::tls::v3alpha::TlsSessionTicketKeys*
+  const envoy::extensions::transport_sockets::tls::v3::TlsSessionTicketKeys*
   secret() const override {
     return tls_session_ticket_keys_.get();
   }
@@ -257,28 +252,27 @@ public:
 
   Common::CallbackHandle* addValidationCallback(
       std::function<
-          void(const envoy::extensions::transport_sockets::tls::v3alpha::TlsSessionTicketKeys&)>
+          void(const envoy::extensions::transport_sockets::tls::v3::TlsSessionTicketKeys&)>
           callback) override {
     return validation_callback_manager_.add(callback);
   }
 
 protected:
-  void
-  setSecret(const envoy::extensions::transport_sockets::tls::v3alpha::Secret& secret) override {
+  void setSecret(const envoy::extensions::transport_sockets::tls::v3::Secret& secret) override {
     tls_session_ticket_keys_ =
-        std::make_unique<envoy::extensions::transport_sockets::tls::v3alpha::TlsSessionTicketKeys>(
+        std::make_unique<envoy::extensions::transport_sockets::tls::v3::TlsSessionTicketKeys>(
             secret.session_ticket_keys());
   }
 
-  void validateConfig(
-      const envoy::extensions::transport_sockets::tls::v3alpha::Secret& secret) override {
+  void
+  validateConfig(const envoy::extensions::transport_sockets::tls::v3::Secret& secret) override {
     validation_callback_manager_.runCallbacks(secret.session_ticket_keys());
   }
 
 private:
   Secret::TlsSessionTicketKeysPtr tls_session_ticket_keys_;
   Common::CallbackManager<
-      const envoy::extensions::transport_sockets::tls::v3alpha::TlsSessionTicketKeys&>
+      const envoy::extensions::transport_sockets::tls::v3::TlsSessionTicketKeys&>
       validation_callback_manager_;
 };
 
