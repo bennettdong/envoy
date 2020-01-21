@@ -60,9 +60,9 @@ public:
                    const envoy::config::core::v3::ConfigSource&, const std::string&,
                    Server::Configuration::TransportSocketFactoryContext&));
   MOCK_METHOD3(findOrCreateGenericSecretProvider,
-               GenericSecretConfigProviderSharedPtr(
-                   const envoy::config::core::v3::ConfigSource&, const std::string&,
-                   Server::Configuration::FactoryContext&));
+               GenericSecretConfigProviderSharedPtr(const envoy::config::core::v3::ConfigSource&,
+                                                    const std::string&,
+                                                    Server::Configuration::FactoryContext&));
 };
 
 class MockSecretCallbacks : public SecretCallbacks {
