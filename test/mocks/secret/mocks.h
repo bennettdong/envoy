@@ -45,7 +45,7 @@ public:
   MOCK_METHOD1(
       createInlineGenericSecretProvider,
       GenericSecretConfigProviderSharedPtr(
-          const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret& generic_secret));
+          const envoy::extensions::transport_sockets::tls::v3::GenericSecret& generic_secret));
   MOCK_METHOD3(findOrCreateTlsCertificateProvider,
                TlsCertificateConfigProviderSharedPtr(
                    const envoy::config::core::v3::ConfigSource&, const std::string&,
@@ -61,7 +61,7 @@ public:
                    Server::Configuration::TransportSocketFactoryContext&));
   MOCK_METHOD3(findOrCreateGenericSecretProvider,
                GenericSecretConfigProviderSharedPtr(
-                   const envoy::config::core::v3alpha::ConfigSource&, const std::string&,
+                   const envoy::config::core::v3::ConfigSource&, const std::string&,
                    Server::Configuration::FactoryContext&));
 };
 

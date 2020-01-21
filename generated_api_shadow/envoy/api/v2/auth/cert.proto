@@ -422,7 +422,7 @@ message DownstreamTlsContext {
 
 message GenericSecret {
   // Secret of generic type and is available to filters.
-  core.DataSource secret = 1;
+  core.DataSource secret = 1 [(udpa.annotations.sensitive) = true];
 }
 
 message SdsSecretConfig {

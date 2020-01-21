@@ -82,14 +82,14 @@ private:
 class GenericSecretConfigProviderImpl : public GenericSecretConfigProvider {
 public:
   GenericSecretConfigProviderImpl(
-      const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret& generic_secret);
+      const envoy::extensions::transport_sockets::tls::v3::GenericSecret& generic_secret);
 
-  const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret* secret() const override {
+  const envoy::extensions::transport_sockets::tls::v3::GenericSecret* secret() const override {
     return generic_secret_.get();
   }
 
   Common::CallbackHandle* addValidationCallback(
-      std::function<void(const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret&)>)
+      std::function<void(const envoy::extensions::transport_sockets::tls::v3::GenericSecret&)>)
       override {
     return nullptr;
   }

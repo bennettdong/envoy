@@ -56,7 +56,7 @@ void SecretManagerImpl::addStaticSecret(
     }
     break;
   }
-  case envoy::extensions::transport_sockets::tls::v3alpha::Secret::TypeCase::kGenericSecret: {
+  case envoy::extensions::transport_sockets::tls::v3::Secret::TypeCase::kGenericSecret: {
     auto secret_provider =
         std::make_shared<GenericSecretConfigProviderImpl>(secret.generic_secret());
     if (!static_generic_secret_providers_.insert(std::make_pair(secret.name(), secret_provider))
@@ -117,7 +117,7 @@ SecretManagerImpl::createInlineTlsSessionTicketKeysProvider(
 }
 
 GenericSecretConfigProviderSharedPtr SecretManagerImpl::createInlineGenericSecretProvider(
-    const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret& generic_secret) {
+    const envoy::extensions::transport_sockets::tls::v3::GenericSecret& generic_secret) {
   return std::make_shared<GenericSecretConfigProviderImpl>(generic_secret);
 }
 
@@ -160,8 +160,7 @@ SecretManagerImpl::findOrCreateTlsSessionTicketKeysContextProvider(
 }
 
 GenericSecretConfigProviderSharedPtr SecretManagerImpl::findOrCreateGenericSecretProvider(
-    const envoy::config::core::v3alpha::ConfigSource& sds_config_source,
-    const std::string& config_name,
+    const envoy::config::core::v3::ConfigSource& sds_config_source, const std::string& config_name,
     Server::Configuration::FactoryContext& secret_provider_context) {
   return generic_secret_providers_.findOrCreate(
       sds_config_source, config_name,
@@ -224,7 +223,7 @@ ProtobufTypes::MessagePtr SecretManagerImpl::dumpSecretConfigs() {
     auto static_secret = config_dump->mutable_static_secrets()->Add();
     static_secret->set_name(secret_iter.first);
     ASSERT(generic_secret != nullptr);
-    envoy::extensions::transport_sockets::tls::v3alpha::Secret dump_secret;
+    envoy::extensions::transport_sockets::tls::v3::Secret dump_secret;
     dump_secret.set_name(secret_iter.first);
     dump_secret.mutable_generic_secret()->MergeFrom(*generic_secret->secret());
     MessageUtil::redact(dump_secret);
@@ -314,7 +313,7 @@ ProtobufTypes::MessagePtr SecretManagerImpl::dumpSecretConfigs() {
   for (const auto& provider : generic_secret_providers) {
     const auto& secret_data = provider->secretData();
     const auto& generic_secret = provider->secret();
-    envoy::admin::v3alpha::SecretsConfigDump::DynamicSecret* dump_secret;
+    envoy::admin::v3::SecretsConfigDump::DynamicSecret* dump_secret;
     const bool secret_ready = generic_secret != nullptr;
     if (secret_ready) {
       dump_secret = config_dump->mutable_dynamic_active_secrets()->Add();
@@ -322,7 +321,7 @@ ProtobufTypes::MessagePtr SecretManagerImpl::dumpSecretConfigs() {
       dump_secret = config_dump->mutable_dynamic_warming_secrets()->Add();
     }
     dump_secret->set_name(secret_data.resource_name_);
-    envoy::extensions::transport_sockets::tls::v3alpha::Secret secret;
+    envoy::extensions::transport_sockets::tls::v3::Secret secret;
     secret.set_name(secret_data.resource_name_);
     ProtobufWkt::Timestamp last_updated_ts;
     TimestampUtil::systemClockToTimestamp(secret_data.last_updated_, last_updated_ts);
@@ -331,7 +330,7 @@ ProtobufTypes::MessagePtr SecretManagerImpl::dumpSecretConfigs() {
     if (secret_ready) {
       secret.mutable_generic_secret()->MergeFrom(*generic_secret);
     }
-    MessageUtil::redact(dump_secret);
+    MessageUtil::redact(secret);
     dump_secret->mutable_secret()->PackFrom(secret);
   }
 

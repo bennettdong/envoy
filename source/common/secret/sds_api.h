@@ -282,7 +282,7 @@ private:
 class GenericSecretSdsApi : public SdsApi, public GenericSecretConfigProvider {
 public:
   static GenericSecretSdsApiSharedPtr
-  create(const envoy::config::core::v3alpha::ConfigSource& sds_config,
+  create(const envoy::config::core::v3::ConfigSource& sds_config,
          const std::string& sds_config_name, Config::SubscriptionFactory& subscription_factory,
          TimeSource& time_source, ProtobufMessage::ValidationVisitor& validation_visitor,
          Stats::Scope& stats, Init::Manager& init_manager, const LocalInfo::LocalInfo& local_info,
@@ -295,7 +295,7 @@ public:
                                                  init_manager, destructor_cb);
   }
 
-  GenericSecretSdsApi(const envoy::config::core::v3alpha::ConfigSource& sds_config,
+  GenericSecretSdsApi(const envoy::config::core::v3::ConfigSource& sds_config,
                       const std::string& sds_config_name,
                       Config::SubscriptionFactory& subscription_factory, TimeSource& time_source,
                       ProtobufMessage::ValidationVisitor& validation_visitor, Stats::Scope& stats,
@@ -304,11 +304,11 @@ public:
                stats, init_manager, std::move(destructor_cb)) {}
 
   // SecretProvider
-  const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret* secret() const override {
+  const envoy::extensions::transport_sockets::tls::v3::GenericSecret* secret() const override {
     return generic_secret.get();
   }
   Common::CallbackHandle* addValidationCallback(
-      std::function<void(const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret&)>)
+      std::function<void(const envoy::extensions::transport_sockets::tls::v3::GenericSecret&)>)
       override {
     return nullptr;
   }
@@ -317,13 +317,11 @@ public:
   }
 
 protected:
-  void
-  setSecret(const envoy::extensions::transport_sockets::tls::v3alpha::Secret& secret) override {
-    generic_secret =
-        std::make_unique<envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret>(
-            secret.generic_secret());
+  void setSecret(const envoy::extensions::transport_sockets::tls::v3::Secret& secret) override {
+    generic_secret = std::make_unique<envoy::extensions::transport_sockets::tls::v3::GenericSecret>(
+        secret.generic_secret());
   }
-  void validateConfig(const envoy::extensions::transport_sockets::tls::v3alpha::Secret&) override {}
+  void validateConfig(const envoy::extensions::transport_sockets::tls::v3::Secret&) override {}
 
 private:
   GenericSecretPtr generic_secret;

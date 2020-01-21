@@ -442,7 +442,7 @@ message GenericSecret {
   option (udpa.annotations.versioning).previous_message_type = "envoy.api.v2.auth.GenericSecret";
 
   // Secret of generic type and is available to filters.
-  config.core.v3.DataSource secret = 1;
+  config.core.v3.DataSource secret = 1 [(udpa.annotations.sensitive) = true];
 }
 
 message SdsSecretConfig {

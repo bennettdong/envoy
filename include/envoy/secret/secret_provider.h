@@ -48,13 +48,9 @@ using TlsCertificatePtr =
 using CertificateValidationContextPtr =
     std::unique_ptr<envoy::extensions::transport_sockets::tls::v3::CertificateValidationContext>;
 using TlsSessionTicketKeysPtr =
-<<<<<<< HEAD
-    std::unique_ptr<envoy::extensions::transport_sockets::tls::v3alpha::TlsSessionTicketKeys>;
-using GenericSecretPtr =
-    std::unique_ptr<envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret>;
-=======
     std::unique_ptr<envoy::extensions::transport_sockets::tls::v3::TlsSessionTicketKeys>;
->>>>>>> master
+using GenericSecretPtr =
+    std::unique_ptr<envoy::extensions::transport_sockets::tls::v3::GenericSecret>;
 
 using TlsCertificateConfigProvider =
     SecretProvider<envoy::extensions::transport_sockets::tls::v3::TlsCertificate>;
@@ -71,7 +67,7 @@ using TlsSessionTicketKeysConfigProviderSharedPtr =
     std::shared_ptr<TlsSessionTicketKeysConfigProvider>;
 
 using GenericSecretConfigProvider =
-    SecretProvider<envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret>;
+    SecretProvider<envoy::extensions::transport_sockets::tls::v3::GenericSecret>;
 using GenericSecretConfigProviderSharedPtr = std::shared_ptr<GenericSecretConfigProvider>;
 
 } // namespace Secret

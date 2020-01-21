@@ -206,7 +206,7 @@ session_ticket_keys:
 TEST_F(SecretManagerImplTest, GenericSecretLoadSuccess) {
   std::unique_ptr<SecretManager> secret_manager(new SecretManagerImpl(config_tracker_));
 
-  envoy::extensions::transport_sockets::tls::v3alpha::Secret secret;
+  envoy::extensions::transport_sockets::tls::v3::Secret secret;
   const std::string yaml =
       R"EOF(
 name: "encryption_key"
@@ -220,7 +220,7 @@ generic_secret:
   ASSERT_EQ(secret_manager->findStaticGenericSecretProvider("undefined"), nullptr);
   ASSERT_NE(secret_manager->findStaticGenericSecretProvider("encryption_key"), nullptr);
 
-  const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret generic_secret(
+  const envoy::extensions::transport_sockets::tls::v3::GenericSecret generic_secret(
       *secret_manager->findStaticGenericSecretProvider("encryption_key")->secret());
   const std::string secret_path =
       "{{ test_rundir }}/test/extensions/transport_sockets/tls/test_data/aes_128_key";
@@ -231,7 +231,7 @@ generic_secret:
 TEST_F(SecretManagerImplTest, DuplicateGenericSecret) {
   std::unique_ptr<SecretManager> secret_manager(new SecretManagerImpl(config_tracker_));
 
-  envoy::extensions::transport_sockets::tls::v3alpha::Secret secret;
+  envoy::extensions::transport_sockets::tls::v3::Secret secret;
   const std::string yaml =
       R"EOF(
 name: "encryption_key"
@@ -387,7 +387,7 @@ tls_certificate:
 TEST_F(SecretManagerImplTest, SdsDynamicGenericSecret) {
   Server::MockInstance server;
   std::unique_ptr<SecretManager> secret_manager(new SecretManagerImpl(config_tracker_));
-  envoy::config::core::v3alpha::ConfigSource config_source;
+  envoy::config::core::v3::ConfigSource config_source;
 
   NiceMock<Server::Configuration::MockFactoryContext> factory_context;
   NiceMock<Event::MockDispatcher> dispatcher;
@@ -417,7 +417,7 @@ generic_secret:
   secret:
     inline_string: "DUMMY_AES_128_KEY"
 )EOF";
-  envoy::extensions::transport_sockets::tls::v3alpha::Secret typed_secret;
+  envoy::extensions::transport_sockets::tls::v3::Secret typed_secret;
   TestUtility::loadFromYaml(TestEnvironment::substitute(yaml), typed_secret);
   Protobuf::RepeatedPtrField<ProtobufWkt::Any> secret_resources;
   secret_resources.Add()->PackFrom(typed_secret);
@@ -425,7 +425,7 @@ generic_secret:
   factory_context.cluster_manager_.subscription_factory_.callbacks_->onConfigUpdate(
       secret_resources, "");
 
-  const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret generic_secret(
+  const envoy::extensions::transport_sockets::tls::v3::GenericSecret generic_secret(
       *secret_provider->secret());
   EXPECT_EQ("DUMMY_AES_128_KEY", generic_secret.secret().inline_string());
 }
@@ -637,7 +637,7 @@ generic_secret:
   factory_context.cluster_manager_.subscription_factory_.callbacks_->onConfigUpdate(
       secret_resources, "signing-key-v1");
 
-  const envoy::extensions::transport_sockets::tls::v3alpha::GenericSecret generic_secret(
+  const envoy::extensions::transport_sockets::tls::v3::GenericSecret generic_secret(
       *generic_secret_provider->secret());
   EXPECT_EQ("DUMMY_ECDSA_KEY", generic_secret.secret().inline_string());
 
@@ -649,7 +649,7 @@ dynamic_active_secrets:
     seconds: 1234567891
     nanos: 234000000
   secret:
-    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3alpha.Secret
+    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.Secret
     name: "abc.com"
     tls_certificate:
       certificate_chain:
@@ -663,7 +663,7 @@ dynamic_active_secrets:
   last_updated:
     seconds: 1234567899
   secret:
-    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3alpha.Secret
+    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.Secret
     name: "abc.com.validation"
     validation_context:
       trusted_ca:
@@ -673,19 +673,19 @@ dynamic_active_secrets:
   last_updated:
     seconds: 1234567899
   secret:
-    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3alpha.Secret
+    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.Secret
     name: "abc.com.stek"
     session_ticket_keys:
       keys:
-        - filename: "{{ test_rundir }}/test/extensions/transport_sockets/tls/test_data/ticket_key_a"
+        - filename: "[redacted]"
         - inline_string: "[redacted]"
-        - inline_string: "[redacted]"
+        - inline_bytes: "W3JlZGFjdGVkXQ=="
 - name: "signing_key" 
   version_info: "signing-key-v1"
   last_updated:
     seconds: 1234567900
   secret:
-    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3alpha.Secret
+    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.Secret
     name: "signing_key"
     generic_secret:
       secret:
@@ -805,28 +805,28 @@ dynamic_warming_secrets:
     seconds: 1234567891
     nanos: 234000000
   secret:
-    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3alpha.Secret
+    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.Secret
     name: "abc.com"
 - name: "abc.com.validation"
   version_info: "uninitialized"
   last_updated:
     seconds: 1234567899
   secret:
-    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3alpha.Secret
+    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.Secret
     name: "abc.com.validation"
 - name: "abc.com.stek"
   version_info: "uninitialized"
   last_updated:
     seconds: 1234567899
   secret:
-    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3alpha.Secret
+    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.Secret
     name: "abc.com.stek"
 - name: "signing_key"
   version_info: "uninitialized"
   last_updated:
     seconds: 1234567900
   secret:
-    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3alpha.Secret
+    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.Secret
     name: "signing_key"
 )EOF";
   checkConfigDump(config_dump_with_generic_secret);
@@ -1009,7 +1009,7 @@ generic_secret:
   secret:
     inline_bytes: "DUMMY_ECDSA_KEY"
 )EOF";
-  envoy::extensions::transport_sockets::tls::v3alpha::Secret typed_secret;
+  envoy::extensions::transport_sockets::tls::v3::Secret typed_secret;
   TestUtility::loadFromYaml(TestEnvironment::substitute(yaml), typed_secret);
   secret_manager->addStaticSecret(typed_secret);
 
@@ -1017,11 +1017,11 @@ generic_secret:
 static_secrets:
 - name: "signing_key"
   secret:
-    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3alpha.Secret
+    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.Secret
     name: "signing_key"
     generic_secret:
       secret:
-        inline_string: "[redacted]"
+        inline_bytes: "W3JlZGFjdGVkXQ=="
 )EOF";
   checkConfigDump(TestEnvironment::substitute(expected_config_dump));
 }
