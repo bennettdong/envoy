@@ -441,7 +441,8 @@ message DownstreamTlsContext {
 message GenericSecret {
   option (udpa.annotations.versioning).previous_message_type = "envoy.api.v2.auth.GenericSecret";
 
-  config.core.v3alpha.DataSource secret = 1;
+  // Secret of generic type and is available to filters.
+  config.core.v3.DataSource secret = 1;
 }
 
 message SdsSecretConfig {

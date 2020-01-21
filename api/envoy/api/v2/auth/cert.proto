@@ -421,6 +421,7 @@ message DownstreamTlsContext {
 }
 
 message GenericSecret {
+  // Secret of generic type and is available to filters.
   core.DataSource secret = 1;
 }
 

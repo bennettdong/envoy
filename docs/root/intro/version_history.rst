@@ -3,6 +3,7 @@ Version history
 
 1.14.0 (Pending)
 ================
+* sds: added :ref:`GenericSecret <envoy_api_msg_auth.GenericSecret>` to support secret of generic type and make it available to filters.
 
 1.13.0 (January 20, 2020)
 =========================
